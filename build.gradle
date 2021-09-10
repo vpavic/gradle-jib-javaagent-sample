@@ -1,0 +1,56 @@
+import com.google.cloud.tools.jib.gradle.JibTask
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+    id("java")
+    id("com.google.cloud.tools.jib").version("3.1.4")
+    id("org.springframework.boot").version("2.5.4")
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    javaAgent
+}
+
+dependencies {
+    implementation(platform(SpringBootPlugin.BOM_COORDINATES))
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    javaAgent("com.newrelic.agent.java:newrelic-agent:7.2.0")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+tasks.register("processJavaAgents", Copy) {
+    from(configurations.javaAgent)
+    into(layout.buildDirectory.dir("tmp/processJavaAgents"))
+    rename { s -> s.substring(0, s.lastIndexOf("-")) + s.substring(s.lastIndexOf(".")) }
+}
+
+tasks.withType(JibTask) {
+    dependsOn(processJavaAgents)
+}
+
+jib {
+    extraDirectories {
+        paths {
+            path {
+                from = processJavaAgents.outputs.files.asPath
+                into = "/opt/javaagents"
+            }
+        }
+    }
+}

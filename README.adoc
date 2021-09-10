@@ -1,0 +1,1 @@
+= Gradle Jib Java Agent Sample
