@@ -1,1 +1,26 @@
 = Gradle Jib Java Agent Sample
+
+This sample demonstrates how to use Gradle and Jib to build a container image of an application that needs to run with a Java agent.
+The application used in this sample is a simple Spring Boot web application while the Java agent used is the New Relic Java agent.
+
+== Challenge
+
+Typically, instructions for setting up your application to run with a Java agent are along these lines:
+
+* download the Java agent `.jar` file
+* place the Java agent `.jar` somewhere on your server
+* use `-javaagent` JVM switch when starting your application
+
+The challenge is that quite often the environments the containers are running in don't make it easy to add arbitrary files using volumes.
+Also, since we are building a container image it simply makes sense to include all the running parts in the image itself.
+
+Additionally, instead of downloading the Java agent manually, you might also want to leverage the dependency management capabilities of your build tool, just like you do with other dependencies.
+
+== Solution
+
+The solution that this sample uses combines the flexibility of Gradle with Jib's powerful container image building features.
+It basically consists of applying the following steps:
+
+* declare dependency configuration for Java agents
+* copy the Java agent dependencies to the container image
+* ensure the container is started with the `-javaagent` JVM switch
