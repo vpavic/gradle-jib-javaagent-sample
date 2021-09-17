@@ -49,7 +49,7 @@ jib {
         paths {
             path {
                 from = processJavaAgents.outputs.files.asPath
-                into = "/opt/javaagents"
+                into = "/opt/javaagent"
             }
         }
     }
