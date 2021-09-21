@@ -1,4 +1,3 @@
-import com.google.cloud.tools.jib.gradle.JibTask
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
@@ -18,7 +17,11 @@ repositories {
 }
 
 configurations {
-    javaAgent
+    javaAgent {
+        visible = false
+        transitive = false
+        canBeConsumed = false
+    }
 }
 
 dependencies {
@@ -34,23 +37,11 @@ tasks.withType(Test) {
     useJUnitPlatform()
 }
 
-tasks.register("processJavaAgents", Copy) {
-    from(configurations.javaAgent)
-    into(layout.buildDirectory.dir("tmp/processJavaAgents"))
-    rename { s -> s.substring(0, s.lastIndexOf("-")) + s.substring(s.lastIndexOf(".")) }
-}
-
-tasks.withType(JibTask) {
-    dependsOn(processJavaAgents)
-}
-
 jib {
+    container {
+        jvmFlags = configurations.javaAgent.collect { "-javaagent:" + it.name }
+    }
     extraDirectories {
-        paths {
-            path {
-                from = processJavaAgents.outputs.files.asPath
-                into = "/opt/javaagent"
-            }
-        }
+        paths = configurations.javaAgent.collect { it.parent }
     }
 }
